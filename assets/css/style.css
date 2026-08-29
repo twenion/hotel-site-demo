@@ -358,7 +358,7 @@ li { margin-bottom: 6px; }
 .site-foot { background: var(--frame); color: var(--on-frame-2); margin-top: 72px; }
 .site-foot a { color: var(--on-frame); }
 .foot-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 32px; padding: 48px 0 32px; }
-.foot-in h4 { color: var(--on-frame); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px; font-family: "Plex", sans-serif; font-weight: 600; }
+.foot-in h2 { color: var(--on-frame); font-size: 15px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 14px; font-family: "Plex", sans-serif; font-weight: 600; }
 .foot-in ul { list-style: none; padding: 0; margin: 0; }
 .foot-in li { margin-bottom: 9px; font-size: 15.5px; }
 .foot-note { border-top: 1px solid var(--frame-2); padding: 22px 0 40px; font-size: 14.5px; display: flex; flex-wrap: wrap; gap: 12px 32px; justify-content: space-between; }
