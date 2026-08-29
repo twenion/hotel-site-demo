@@ -298,7 +298,7 @@ ROOMS = (
                   windows=((432, 130, 8, 170),),
                   door=(0, 270, 8, 90),
                   extras=((215, 330, 170, 60, "komod"), (0, 60, 80, 150, "şkaf"),
-                          (240, 592, 160, 8, "balkon"))),
+                          (230, 600, 190, 55, "balkon"))),
     ),
     Room(
         slug="zumrud", name="Zümrüd", kind="Ailə otağı", glass="zümrüd",

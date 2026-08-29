@@ -231,7 +231,7 @@ def build() -> None:
         p.write_text(svg, encoding="utf-8")
         total += p.stat().st_size
     # A wide one for the front page, built on the ruby room's stock.
-    hero = panel("ulduz8", hotel.ROOM_BY_SLUG["yaqut"].hex_light, 9, 1440, 560,
+    hero = panel("ulduz8", hotel.ROOM_BY_SLUG["yaqut"].hex_light, 7, 1120, 840,
                  "s-hero", frame=False)
     (OUT / "hero.svg").write_text(hero, encoding="utf-8")
     total += (OUT / "hero.svg").stat().st_size

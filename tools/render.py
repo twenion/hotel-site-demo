@@ -291,17 +291,25 @@ def plan_svg(r) -> str:
     """The room drawn to scale from the same centimetres the passport quotes."""
     p = r.plan
     pad = 46
-    scale = 560 / max(p.w, p.h)
+    # A balcony hangs outside the wall, so the drawing is measured from every
+    # shape rather than from the room -- otherwise its label gets clipped.
+    xs = [0, p.w] + [x for x, y, w, h, _ in p.extras] + [x + w for x, y, w, h, _ in p.extras]
+    ys = [0, p.h] + [y for x, y, w, h, _ in p.extras] + [y + h for x, y, w, h, _ in p.extras]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    scale = 560 / max(x1 - x0, y1 - y0)
     W, H = p.w * scale, p.h * scale
-    vb_w, vb_h = W + pad * 2, H + pad * 2
+    off_x, off_y = -x0 * scale, -y0 * scale
+    pad_x, pad_y = pad + off_x, pad + off_y
+    vb_w = (x1 - x0) * scale + pad * 2
+    vb_h = (y1 - y0) * scale + pad * 2
 
     def rect(x, y, w, h, **kw):
         a = " ".join(f'{k.replace("_", "-")}="{v}"' for k, v in kw.items())
-        return (f'<rect x="{pad + x * scale:.1f}" y="{pad + y * scale:.1f}" '
+        return (f'<rect x="{pad_x + x * scale:.1f}" y="{pad_y + y * scale:.1f}" '
                 f'width="{w * scale:.1f}" height="{h * scale:.1f}" {a}/>')
 
     def label(x, y, text, size=13, anchor="middle", cls="pl-lab"):
-        return (f'<text x="{pad + x * scale:.1f}" y="{pad + y * scale:.1f}" '
+        return (f'<text x="{pad_x + x * scale:.1f}" y="{pad_y + y * scale:.1f}" '
                 f'font-size="{size}" text-anchor="{anchor}" class="{cls}">{e(text)}</text>')
 
     parts = [rect(0, 0, p.w, p.h, fill="var(--surface-2)", stroke="var(--ink)",
@@ -319,8 +327,8 @@ def plan_svg(r) -> str:
         parts.append(rect(bx, by, bw, bh, fill=r.hex_light, opacity=".92", rx="3"))
         parts.append(rect(bx + 6, by + 6, bw - 12, bh * 0.22, fill="var(--surface)",
                           opacity=".85", rx="2"))
-        parts.append(f'<text x="{pad + (bx + bw / 2) * scale:.1f}" '
-                     f'y="{pad + (by + bh * 0.62) * scale:.1f}" font-size="12.5" '
+        parts.append(f'<text x="{pad_x + (bx + bw / 2) * scale:.1f}" '
+                     f'y="{pad_y + (by + bh * 0.62) * scale:.1f}" font-size="12.5" '
                      f'text-anchor="middle" fill="#fff" class="pl-bed">'
                      f'{bw}×{bh}</text>')
     for x, y, w, h in p.windows:
@@ -331,20 +339,20 @@ def plan_svg(r) -> str:
         cx = dx + (dw if dx < p.w / 2 else 0)
         arc_r = max(dh, dw)
         parts.append(
-            f'<path d="M {pad + cx * scale:.1f} {pad + dy * scale:.1f} '
+            f'<path d="M {pad_x + cx * scale:.1f} {pad_y + dy * scale:.1f} '
             f'a {arc_r * scale:.1f} {arc_r * scale:.1f} 0 0 1 '
             f'{arc_r * scale * (1 if dx < p.w / 2 else -1):.1f} {arc_r * scale:.1f}" '
             'fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-dasharray="4 4"/>')
 
     # Dimensions along the top and the left.
-    parts.append(f'<line x1="{pad}" y1="{pad - 16}" x2="{pad + W:.1f}" y2="{pad - 16}" '
-                 'stroke="var(--ink-3)" stroke-width="1.2"/>')
+    parts.append(f'<line x1="{pad_x:.1f}" y1="{pad_y - 16:.1f}" x2="{pad_x + W:.1f}" '
+                 f'y2="{pad_y - 16:.1f}" stroke="var(--ink-3)" stroke-width="1.2"/>')
     parts.append(label(p.w / 2, -24 / scale, f"{p.w / 100:.2f} m".replace(".", ","), 13))
-    parts.append(f'<line x1="{pad - 16}" y1="{pad}" x2="{pad - 16}" y2="{pad + H:.1f}" '
-                 'stroke="var(--ink-3)" stroke-width="1.2"/>')
-    parts.append(f'<text x="{pad - 22}" y="{pad + H / 2:.1f}" font-size="13" '
+    parts.append(f'<line x1="{pad_x - 16:.1f}" y1="{pad_y:.1f}" x2="{pad_x - 16:.1f}" '
+                 f'y2="{pad_y + H:.1f}" stroke="var(--ink-3)" stroke-width="1.2"/>')
+    parts.append(f'<text x="{pad_x - 22:.1f}" y="{pad_y + H / 2:.1f}" font-size="13" '
                  f'text-anchor="middle" class="pl-lab" transform="rotate(-90 '
-                 f'{pad - 22} {pad + H / 2:.1f})">'
+                 f'{pad_x - 22:.1f} {pad_y + H / 2:.1f})">'
                  f'{e(f"{p.h / 100:.2f} m".replace(".", ","))}</text>')
 
     return (

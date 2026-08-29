@@ -73,8 +73,8 @@ def build_index() -> None:
         '<div><dt>Xan Sarayına</dt><dd>900 m</dd></div>'
         f'<div><dt>Qonaq rəyi</dt><dd>{str(hotel.RATING).replace(".", ",")} / 5</dd></div>'
         '</dl></div>'
-        '<div class="hero-art"><img src="assets/img/sebeke/hero.svg" width="1440" '
-        'height="560" alt="Evin şəbəkə pəncərəsindən bir hissə: qoz ağacından '
+        '<div class="hero-art"><img src="assets/img/sebeke/hero.svg" width="1120" '
+        'height="840" alt="Evin şəbəkə pəncərəsindən bir hissə: qoz ağacından '
         'səkkizguşəli ulduz naxışı və qırmızı, çəhrayı, kəhrəba rəngli şüşələr"></div>'
         '</div></section>')
 
@@ -241,12 +241,12 @@ def build_room(r) -> None:
                   for k, v in passport_rows)
         + '</tbody></table></div>')
 
+    dims = (f"{r.plan.w / 100:.2f} × {r.plan.h / 100:.2f}").replace(".", ",")
     plan = (
         '<figure class="plan-fig">' + R.plan_svg(r) +
-        f'<figcaption>Plan miqyaslıdır və pasportdakı eyni santimetrlərdən çəkilib: '
-        f'{r.plan.w / 100:.2f} × {r.plan.h / 100:.2f} m. Sarı xətlər pəncərə, '
-        f'kəsik xətlər mebel yeridir.</figcaption></figure>'.replace(".", ","))
-    plan = plan.replace("miqyaslıdır", "miqyaslıdır")
+        '<figcaption>Plan miqyaslıdır və pasportdakı eyni santimetrlərdən çəkilib: '
+        f'{dims} m. Sarı xətlər pəncərə, kəsik xətlər mebel yeridir.'
+        '</figcaption></figure>')
 
     room_revs = [rv for rv in REVIEWS if rv.room == r.slug]
     revs_html = "".join(
@@ -405,8 +405,9 @@ def build_reservation() -> None:
         f'{r.sleeps} nəfər, {money(hotel.price_range(r)[0])}-dən</option>' for r in ROOMS)
     lo_table_rows = "".join(
         f'<tr><th scope="row" style="text-align:start">{e(r.name)}</th>'
-        + "".join(f"<td>{hotel.price(r, next(d for d in hotel.season_days() if hotel.season_for(d).key == s.key))}</td>"
-                  for s in hotel.SEASONS)
+        + "".join(
+            f"<td>{money(hotel.price(r, next(d for d in hotel.season_days() if hotel.season_for(d).key == s.key)))}</td>"
+            for s in hotel.SEASONS)
         + "</tr>" for r in ROOMS)
 
     form = (
@@ -414,7 +415,7 @@ def build_reservation() -> None:
         '<div class="field-row">'
         '<div class="field"><label for="f-in">Gəliş tarixi</label>'
         f'<input type="date" id="f-in" name="in" required min="{hotel.SEASON_START}" '
-        f'max="{hotel.SEASON_END}"><p class="hint">Yerləşmə saat {hotel.CHECKIN}-dan</p>'
+        f'max="{hotel.SEASON_END}"><p class="hint">Yerləşmə saat {hotel.CHECKIN}-dan. Tarixi təqvimdən seçin</p>'
         '<p class="err" id="e-in" hidden></p></div>'
         '<div class="field"><label for="f-out">Çıxış tarixi</label>'
         f'<input type="date" id="f-out" name="out" required min="{hotel.SEASON_START}" '
@@ -483,6 +484,13 @@ def build_reservation() -> None:
         '<p class="mb-0" style="color:var(--ink-2)">Gəlişdən 7 gün əvvəlinə qədər '
         'pulsuz. Sonra bir gecənin qiyməti tutulur. Novruz və Yeni il üçün müddət '
         '14 gündür.</p></div>'
+        '<div class="panel"><h3 class="mt-0">Ən ucuz tarixlər</h3>'
+        '<p style="color:var(--ink-2)">Sakit mövsümdə bütün otaqlar baza qiymətindədir — '
+        'ilin ən ucuz gecələri bunlardır:</p>'
+        '<ul style="padding-inline-start:18px;margin-bottom:0;color:var(--ink-2)">'
+        + "".join(f"<li>{e(_span_text(sp))}</li>"
+                  for sp in hotel.SEASON_BY_KEY["sakit"].spans)
+        + '</ul></div>'
         '<div class="panel"><h3 class="mt-0">Birbaşa əlaqə</h3>'
         '<ul class="facts" style="flex-direction:column;align-items:flex-start;gap:12px">'
         f'<li>{icon("chat")}<a href="https://wa.me/{WHATSAPP_LINK.lstrip("+")}">'
