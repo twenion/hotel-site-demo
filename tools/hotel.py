@@ -15,6 +15,7 @@ colour that fails contrast will stop the build rather than ship.
 from __future__ import annotations
 
 import datetime as dt
+import math
 from dataclasses import dataclass, field
 
 # --- Identity ---------------------------------------------------------------
@@ -349,9 +350,14 @@ ROOM_BY_SLUG = {r.slug: r for r in ROOMS}
 
 
 def price(room: Room, day: dt.date) -> int:
-    """All in: ƏDV and breakfast included. Rounded to the nearest 5 ₼."""
+    """All in: ƏDV and breakfast included. Rounded to the nearest 5 ₼.
+
+    math.floor(x + 0.5) rather than round(), because round() is banker's rounding
+    and JavaScript's Math.round is not. The reservation form recomputes this number
+    in the browser and the two have to land on the same ₼.
+    """
     raw = room.base * season_for(day).factor
-    return int(round(raw / 5.0) * 5)
+    return int(math.floor(raw / 5.0 + 0.5) * 5)
 
 
 def price_range(room: Room) -> tuple:
