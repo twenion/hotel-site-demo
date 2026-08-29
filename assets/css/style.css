@@ -375,3 +375,31 @@ li { margin-bottom: 6px; }
 .js .reveal { opacity: 0; transform: translateY(14px); }
 .js .reveal.is-in { opacity: 1; transform: none; transition: opacity .5s ease, transform .5s ease; }
 @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; } }
+
+/* At phone width the price and its button stop fitting on one line: the button
+   wrapped to two lines and the "ən bahası" note broke mid-number. Give the
+   button the full width instead -- it is the primary action on the page. */
+@media (max-width: 520px) {
+  .card-foot { flex-wrap: wrap; }
+  .card-foot .btn { width: 100%; }
+  .hero-facts { gap: 14px 28px; }
+  .dish { flex-direction: column; gap: 8px; }
+  .dish-price { align-self: flex-start; }
+}
+
+/* A table wider than the phone scrolls, but nothing said so. The gradients are a
+   real affordance (background-attachment: local pins two of them to the content,
+   so the shadow appears only on the side there is more to see) and the sentence
+   is there for anyone who does not read shadows. */
+.matrix-scroll {
+  background:
+    linear-gradient(to right, var(--surface) 40%, rgba(255, 255, 255, 0)),
+    linear-gradient(to left, var(--surface) 40%, rgba(255, 255, 255, 0)) 100% 0,
+    radial-gradient(farthest-side at 0 50%, rgba(25, 29, 26, .16), rgba(25, 29, 26, 0)),
+    radial-gradient(farthest-side at 100% 50%, rgba(25, 29, 26, .16), rgba(25, 29, 26, 0)) 100% 0;
+  background-repeat: no-repeat;
+  background-size: 44px 100%, 44px 100%, 16px 100%, 16px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+.scroll-hint { display: none; font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
+@media (max-width: 760px) { .scroll-hint { display: block; } }

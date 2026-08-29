@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .DS_Store
+_phone_harness.html
+_jscheck.html

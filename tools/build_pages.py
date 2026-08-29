@@ -181,6 +181,7 @@ def build_rooms_index() -> None:
         f'<td style="text-align:start">{e(r.bathroom)}</td>'
         f'<td>{money(hotel.price_range(r)[0])}</td></tr>' for r in ROOMS)
     table = (
+        '<p class="scroll-hint">Cədvəl enlidir — barmağınızla yana sürüşdürün.</p>'
         '<div class="matrix-scroll"><table class="matrix">'
         '<caption>Səkkiz otaq yan-yana — mərtəbə, pillə sayı və çarpayı ölçüsü '
         'daxil olmaqla</caption><thead><tr>'
@@ -344,6 +345,7 @@ def build_prices() -> None:
                  f'<span class="room-dot"></span>'
                  f'<a href="otaq-{r.slug}.html">{e(r.name)}</a></th>{cells}</tr>')
     matrix = (
+        '<p class="scroll-hint">Cədvəl enlidir — barmağınızla yana sürüşdürün.</p>'
         '<div class="matrix-scroll"><table class="matrix">'
         '<caption>Gecəlik qiymət — otaq və mövsüm üzrə, ƏDV və səhər yeməyi '
         'daxil</caption>'
@@ -500,6 +502,7 @@ def build_reservation() -> None:
         '</div>')
 
     price_table = (
+        '<p class="scroll-hint">Cədvəl enlidir — barmağınızla yana sürüşdürün.</p>'
         '<div class="matrix-scroll"><table class="matrix">'
         '<caption>Gecəlik qiymət cədvəli — JavaScript olmadan da buradadır</caption>'
         '<thead><tr><th scope="col" style="text-align:start">Otaq</th>'
@@ -711,7 +714,8 @@ def build_sebeke_page() -> None:
         + sec(sec_head("Dörd naxış", "Otaqlar naxışa görə fərqlənir",
                        "Evdə dörd naxış ailəsi var. Eyni ailədən olan otaqlar sıxlıq və "
                        "rəngə görə ayrılır.")
-              + '<div class="matrix-scroll"><table class="matrix">'
+              + '<p class="scroll-hint">Cədvəl enlidir — barmağınızla yana sürüşdürün.</p>'
+        '<div class="matrix-scroll"><table class="matrix">'
               '<caption>Naxış, sıxlıq və şüşə rəngi</caption>'
               '<thead><tr><th scope="col" style="text-align:start">Otaq</th>'
               '<th scope="col" style="text-align:start">Naxış</th>'
