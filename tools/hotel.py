@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 BRAND = "Qırx Pəncərə"
 BRAND_FULL = "Qırx Pəncərə Qonaq Evi"
 CITY = "Şəki"
-SITE = "https://kulieff21.github.io/hotel-site-demo/"
+SITE = "https://twenion.github.io/hotel-site-demo/"
 ADDRESS = "M. F. Axundzadə küçəsi 41, Yuxarı Baş, Şəki AZ5500"
 PHONE_HUMAN = "+994 24 000 00 00"
 PHONE_LINK = "+99424000000"
