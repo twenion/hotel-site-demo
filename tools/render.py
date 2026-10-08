@@ -216,7 +216,7 @@ def room_card(r, heading: str = "h3") -> str:
     return (
         f'<article class="card reveal" style="{room_style(r)}">'
         '<div class="card-spine"></div>'
-        f'<a class="card-art" href="otaq-{r.slug}.html" tabindex="-1" aria-hidden="true">'
+        f'<a class="card-art lit" href="otaq-{r.slug}.html" tabindex="-1" aria-hidden="true">'
         f'<img src="assets/img/sebeke/{r.slug}.svg" width="720" height="480" loading="lazy" '
         f'alt="" aria-hidden="true"></a>'
         '<div class="card-body">'
@@ -255,7 +255,7 @@ def month_table(room, year: int, month: int) -> str:
             s = hotel.season_for(day)
             p = hotel.price(room, day)
             cells.append(
-                f'<td><div class="day {SEASON_TONE[s.tone]}">'
+                f'<td><div class="day {SEASON_TONE[s.tone]}" data-d="{day.isoformat()}">'
                 f'<span class="dd">{d}</span>'
                 f'<span class="pp">{p}</span></div></td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
@@ -304,7 +304,7 @@ def plan_svg(r) -> str:
     vb_h = (y1 - y0) * scale + pad * 2
 
     def rect(x, y, w, h, **kw):
-        a = " ".join(f'{k.replace("_", "-")}="{v}"' for k, v in kw.items())
+        a = " ".join(f'{k.rstrip("_").replace("_", "-")}="{v}"' for k, v in kw.items())
         return (f'<rect x="{pad_x + x * scale:.1f}" y="{pad_y + y * scale:.1f}" '
                 f'width="{w * scale:.1f}" height="{h * scale:.1f}" {a}/>')
 
@@ -312,27 +312,31 @@ def plan_svg(r) -> str:
         return (f'<text x="{pad_x + x * scale:.1f}" y="{pad_y + y * scale:.1f}" '
                 f'font-size="{size}" text-anchor="{anchor}" class="{cls}">{e(text)}</text>')
 
+    # Classes let the plan draw itself on screen: walls first, then what stands in
+    # the room. Lengths are the real perimeters, so the stroke ends where the wall does.
+    wall = 2 * (W + H)
     parts = [rect(0, 0, p.w, p.h, fill="var(--surface-2)", stroke="var(--ink)",
-                  stroke_width="3")]
+                  stroke_width="3", class_="pl-wall", style=f"--len:{wall:.0f}")]
     if p.bath:
         bx, by, bw, bh = p.bath
         parts.append(rect(bx, by, bw, bh, fill="var(--surface)", stroke="var(--ink-3)",
-                          stroke_width="1.6"))
-        parts.append(label(bx + bw / 2, by + bh / 2 + 5, "vanna otağı", 12.5))
+                          stroke_width="1.6", class_="pl-item"))
+        parts.append(label(bx + bw / 2, by + bh / 2 + 5, "vanna otağı", 12.5, cls="pl-lab pl-item"))
     for x, y, w, h, name in p.extras:
         parts.append(rect(x, y, w, h, fill="none", stroke="var(--ink-3)",
-                          stroke_width="1.4", stroke_dasharray="5 4"))
-        parts.append(label(x + w / 2, y + h / 2 + 5, name, 12.5))
+                          stroke_width="1.4", stroke_dasharray="5 4", class_="pl-item"))
+        parts.append(label(x + w / 2, y + h / 2 + 5, name, 12.5, cls="pl-lab pl-item"))
     for bx, by, bw, bh in p.bed:
-        parts.append(rect(bx, by, bw, bh, fill=r.hex_light, opacity=".92", rx="3"))
+        parts.append(rect(bx, by, bw, bh, fill=r.hex_light, opacity=".92", rx="3",
+                          class_="pl-item pl-bedrect"))
         parts.append(rect(bx + 6, by + 6, bw - 12, bh * 0.22, fill="var(--surface)",
-                          opacity=".85", rx="2"))
+                          opacity=".85", rx="2", class_="pl-item pl-bedrect"))
         parts.append(f'<text x="{pad_x + (bx + bw / 2) * scale:.1f}" '
                      f'y="{pad_y + (by + bh * 0.62) * scale:.1f}" font-size="12.5" '
-                     f'text-anchor="middle" fill="#fff" class="pl-bed">'
+                     f'text-anchor="middle" fill="#fff" class="pl-bed pl-item">'
                      f'{bw}×{bh}</text>')
     for x, y, w, h in p.windows:
-        parts.append(rect(x, y, w, h, fill="#D9A441"))
+        parts.append(rect(x, y, w, h, fill="#D9A441", class_="pl-window"))
     if p.door:
         dx, dy, dw, dh = p.door
         parts.append(rect(dx, dy, dw, dh, fill="var(--ground)"))
@@ -342,14 +346,15 @@ def plan_svg(r) -> str:
             f'<path d="M {pad_x + cx * scale:.1f} {pad_y + dy * scale:.1f} '
             f'a {arc_r * scale:.1f} {arc_r * scale:.1f} 0 0 1 '
             f'{arc_r * scale * (1 if dx < p.w / 2 else -1):.1f} {arc_r * scale:.1f}" '
-            'fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-dasharray="4 4"/>')
+            'fill="none" stroke="var(--ink-3)" stroke-width="1.3" stroke-dasharray="4 4" '
+            'class="pl-item"/>')
 
     # Dimensions along the top and the left.
     parts.append(f'<line x1="{pad_x:.1f}" y1="{pad_y - 16:.1f}" x2="{pad_x + W:.1f}" '
-                 f'y2="{pad_y - 16:.1f}" stroke="var(--ink-3)" stroke-width="1.2"/>')
+                 f'y2="{pad_y - 16:.1f}" stroke="var(--ink-3)" stroke-width="1.2" class="pl-dim"/>')
     parts.append(label(p.w / 2, -24 / scale, f"{p.w / 100:.2f} m".replace(".", ","), 13))
     parts.append(f'<line x1="{pad_x - 16:.1f}" y1="{pad_y:.1f}" x2="{pad_x - 16:.1f}" '
-                 f'y2="{pad_y + H:.1f}" stroke="var(--ink-3)" stroke-width="1.2"/>')
+                 f'y2="{pad_y + H:.1f}" stroke="var(--ink-3)" stroke-width="1.2" class="pl-dim"/>')
     parts.append(f'<text x="{pad_x - 22:.1f}" y="{pad_y + H / 2:.1f}" font-size="13" '
                  f'text-anchor="middle" class="pl-lab" transform="rotate(-90 '
                  f'{pad_x - 22:.1f} {pad_y + H / 2:.1f})">'

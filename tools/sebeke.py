@@ -206,6 +206,42 @@ def panel(family: str, base_hex: str, density: int, w: int, h: int,
         f'<rect width="{w}" height="{h}" fill="url(#{pid})"/>{f}</svg>')
 
 
+def window(family: str, base_hex: str, density: int, w: int, h: int,
+           pid: str, label: str) -> str:
+    """The front-page panel, inline and tile by tile, so the glass can take light.
+
+    `panel()` draws the lattice as one repeating pattern, which is the right file
+    for an <img> but gives script nothing to address. Here the glass of each tile
+    is its own <use>, numbered by its distance from the top-right corner -- the
+    side the morning sun comes from -- while the wood stays one pattern on top,
+    exactly as in the static file. Same geometry, same tones, same bars.
+    """
+    tones = glass_tones(base_hex)
+    s = w / density
+    shapes = FAMILIES[family](s)
+    bars = max(2.6, s * 0.095)
+    cols, rows = density, math.ceil(h / s)
+
+    cells = "".join(
+        f'<polygon points="{_poly(pts)}" fill="{tones[t]}"/>' for pts, t in shapes)
+    edges = "".join(
+        f'<polygon points="{_poly(pts)}" fill="none" stroke="{WOOD}" '
+        f'stroke-width="{bars:.2f}" stroke-linejoin="round"/>' for pts, t in shapes)
+    panes = "".join(
+        f'<use href="#{pid}-tile" x="{c * s:.1f}" y="{r * s:.1f}" width="{s:.1f}" '
+        f'height="{s:.1f}" class="pane" style="--d:{(cols - 1 - c) + r}"/>'
+        for r in range(rows) for c in range(cols))
+    return (
+        f'<svg class="sebeke-live" viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
+        f'role="img" aria-label="{label}">'
+        f'<defs><symbol id="{pid}-tile" viewBox="0 0 {s:.3f} {s:.3f}">{cells}</symbol>'
+        f'<pattern id="{pid}-wood" width="{s:.3f}" height="{s:.3f}" '
+        f'patternUnits="userSpaceOnUse">{edges}</pattern></defs>'
+        f'<rect width="{w}" height="{h}" fill="{WOOD_LIT}"/>'
+        f'<g id="{pid}-glass">{panes}</g>'
+        f'<rect width="{w}" height="{h}" fill="url(#{pid}-wood)"/></svg>')
+
+
 def favicon() -> str:
     """One star, one cross, the house colours. Legible at 16px."""
     tones = glass_tones(hotel.ROOMS[5].hex_light)     # Yaqut, the ruby room

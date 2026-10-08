@@ -15,6 +15,7 @@ from pathlib import Path
 
 import hotel
 import render as R
+import sebeke
 from hotel import (ARTICLES, BRAND, BRAND_FULL, EMAIL, FAQ, MENU, MENU_NOTE,
                    PHONE_HUMAN, PHONE_LINK, REVIEWS, ROOMS, SITE,
                    WHATSAPP_HUMAN, WHATSAPP_LINK)
@@ -73,9 +74,12 @@ def build_index() -> None:
         '<div><dt>Xan Sarayına</dt><dd>900 m</dd></div>'
         f'<div><dt>Qonaq rəyi</dt><dd>{str(hotel.RATING).replace(".", ",")} / 5</dd></div>'
         '</dl></div>'
-        '<div class="hero-art"><img src="assets/img/sebeke/hero.svg" width="1120" '
-        'height="840" alt="Evin şəbəkə pəncərəsindən bir hissə: qoz ağacından '
-        'səkkizguşəli ulduz naxışı və qırmızı, çəhrayı, kəhrəba rəngli şüşələr"></div>'
+        '<div class="hero-window"><div class="hero-art lit">'
+        + sebeke.window("ulduz8", hotel.ROOM_BY_SLUG["yaqut"].hex_light, 7, 1120, 840,
+                        "qp-hero", "Evin şəbəkə pəncərəsindən bir hissə: qoz ağacından "
+                        "səkkizguşəli ulduz naxışı və qırmızı, çəhrayı, kəhrəba rəngli şüşələr")
+        + '</div><div class="hero-cast" aria-hidden="true"><svg viewBox="0 0 1120 840" '
+        'preserveAspectRatio="none"><use href="#qp-hero-glass"/></svg></div></div>'
         '</div></section>')
 
     why = sec(
@@ -115,7 +119,7 @@ def build_index() -> None:
                            "Axşam yeməyi menyusu kiçikdir: beş əsas yemək, üçü Şəki "
                            "mətbəxindən.")
         + f'<a class="btn btn-quiet" href="restoran.html">Menyuya bax{icon("arrow")}</a></div>'
-        '<figure class="plan-fig" style="margin:0"><img '
+        '<figure class="plan-fig lit" style="margin:0"><img '
         'src="assets/img/sebeke/kehreba.svg" width="720" height="480" loading="lazy" '
         'alt="Kəhrəba otağının şəbəkəsi: kəhrəba və narıncı şüşədən altıbucaqlı naxış">'
         '<figcaption>Kəhrəba otağının pəncərəsi — altıbucaqlı naxış, '
@@ -275,7 +279,7 @@ def build_room(r) -> None:
         f'<a class="btn btn-main" href="rezervasiya.html?otaq={r.slug}">'
         f'Bu otağı seç{icon("arrow")}</a></div>'
         '</div>'
-        '<figure class="plan-fig" style="padding:0;overflow:hidden">'
+        '<figure class="plan-fig lit" style="padding:0;overflow:hidden">'
         f'<img src="assets/img/sebeke/{r.slug}.svg" width="720" height="480" '
         f'alt="{e(r.name)} otağının şəbəkə pəncərəsi: '
         f'{e(r.glass)} rəngli şüşə və qoz ağacından naxış">'
@@ -452,6 +456,7 @@ def build_reservation() -> None:
         '<div class="total-line"><span>Gecə sayı</span><span id="t-nights">—</span></div>'
         '<div class="total-line"><span>Otaq</span><span id="t-room">—</span></div>'
         '<div class="total-line"><span>Mövsüm</span><span id="t-season">—</span></div>'
+        '<ol class="night-strip" id="t-strip" aria-hidden="true"></ol>'
         '<div class="total-line is-sum"><span>Cəmi</span><span id="t-sum">—</span></div>'
         '<p class="hint mb-0" style="margin-top:10px">ƏDV və səhər yeməyi daxildir. '
         'Ödəniş yerində.</p></div>'
@@ -689,7 +694,7 @@ PATTERN_AZ = {"ulduz8": "səkkizguşəli ulduz və xaç", "sekkizguse": "səkkiz
 
 def build_sebeke_page() -> None:
     cards = "".join(
-        f'<figure class="plan-fig reveal" style="padding:0;overflow:hidden">'
+        f'<figure class="plan-fig lit reveal" style="padding:0;overflow:hidden">'
         f'<img src="assets/img/sebeke/{r.slug}.svg" width="720" height="480" '
         f'loading="lazy" alt="{e(r.name)} otağının şəbəkəsi: {e(PATTERN_AZ[r.pattern])} '
         f'naxışı, {e(r.glass)} rəngli şüşə">'
@@ -957,7 +962,8 @@ def build_data_js() -> None:
         "end": hotel.SEASON_END.isoformat(),
         "days": days,
         "seasons": {code[s.key]: {"name": s.name, "factor": s.factor,
-                                  "min": hotel.MIN_NIGHTS.get(s.key, 1)}
+                                  "min": hotel.MIN_NIGHTS.get(s.key, 1),
+                                  "tone": R.SEASON_TONE[s.tone]}
                     for s in hotel.SEASONS},
         "rooms": {r.slug: {"name": r.name, "base": r.base, "sleeps": r.sleeps,
                            "kind": r.kind} for r in ROOMS},

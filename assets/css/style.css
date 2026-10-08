@@ -403,3 +403,127 @@ li { margin-bottom: 6px; }
 }
 .scroll-hint { display: none; font-size: 14.5px; color: var(--ink-3); margin: 0 0 10px; }
 @media (max-width: 760px) { .scroll-hint { display: block; } }
+
+/* --- Light -----------------------------------------------------------------
+   A şəbəkə exists to colour the light that comes into a room. The motion on
+   this site does that and only that: the front window takes the morning sun
+   pane by pane and throws its colours on the floor, glass brightens under the
+   pointer, the floor plan draws its walls before its furniture, and the year
+   opens one night at a time. All of it is added by script under .motion, which
+   is only set when the visitor has not asked for reduced motion. */
+
+.sebeke-live { display: block; width: 100%; height: auto; }
+.hero-window { position: relative; }
+.lit { position: relative; isolation: isolate; overflow: hidden; }
+.lit::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(circle at var(--lx, 80%) var(--ly, 16%),
+    rgba(255, 238, 196, .62), rgba(255, 226, 170, .16) 30%, rgba(255, 226, 170, 0) 60%);
+  mix-blend-mode: overlay; opacity: 0; transition: opacity .45s ease;
+}
+.lit:hover::after { opacity: 1; }
+.hero-art.lit::after { opacity: .9; }
+
+.motion .pane { animation: pane-light 1.1s cubic-bezier(.3, .6, .2, 1) both; animation-delay: calc(var(--d) * 85ms + 250ms); }
+@keyframes pane-light { from { opacity: .1; } 60% { opacity: 1; } to { opacity: 1; } }
+.motion .hero-art.lit::after { animation: sun-in 1.6s ease 1.6s both; }
+@keyframes sun-in { from { opacity: 0; } to { opacity: .9; } }
+
+.hero-cast {
+  position: absolute; left: 2%; right: 2%; top: calc(100% + 6px); height: 58%;
+  pointer-events: none; transform-origin: 50% 0;
+  transform: perspective(620px) rotateX(64deg) skewX(calc(-16deg + var(--sun, 0) * 26deg));
+  filter: blur(5px) saturate(1.6) brightness(1.15); opacity: .5; mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(to bottom, #000 10%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 10%, transparent 92%);
+}
+.hero-cast svg { display: block; width: 100%; height: 100%; }
+.motion .hero-cast { animation: cast-in 2.2s ease 1.8s both; }
+@keyframes cast-in { from { opacity: 0; } to { opacity: .5; } }
+.hero-in { padding-bottom: 96px; }
+@media (max-width: 900px) {
+  .hero-window { order: -1; }
+  .hero-art { order: 0; }
+  .hero-cast { display: none; }
+  .hero-in { padding-bottom: 48px; }
+}
+
+/* Room cards: the glass brightens and the card throws its own colour. */
+.card { transition: box-shadow .35s ease, transform .35s ease, border-color .35s ease; }
+.card-art img { transition: filter .45s ease, transform .9s cubic-bezier(.2, .7, .2, 1); }
+.card:hover { transform: translateY(-3px); box-shadow: 0 26px 46px -30px var(--room, #000); border-color: var(--line-2); }
+.card:hover .card-art img { filter: brightness(1.14) saturate(1.18); transform: scale(1.035); }
+.card-art.lit::before {
+  content: ""; position: absolute; inset: -20% auto -20% -60%; width: 45%; z-index: 1; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 244, 214, .32), transparent);
+  transform: skewX(-12deg) translateX(0); opacity: 0;
+}
+.card:hover .card-art.lit::before { animation: glint 1.1s ease; }
+@keyframes glint { from { opacity: 1; transform: skewX(-12deg) translateX(0); } to { opacity: 0; transform: skewX(-12deg) translateX(420%); } }
+.motion .card.reveal .card-spine { transform: scaleX(0); transform-origin: left; }
+.motion .card.reveal.is-in .card-spine { transform: none; transition: transform .9s cubic-bezier(.2, .7, .2, 1) .2s; }
+/* Cards arrive by animation, so their own transitions stay free for hover. */
+.js .card.reveal.is-in {
+  transition: box-shadow .35s ease, transform .35s ease, border-color .35s ease;
+  animation: rise .55s ease backwards; animation-delay: var(--stagger, 0s);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.js .grid > .reveal:nth-child(3n+2) { --stagger: .09s; }
+.js .grid > .reveal:nth-child(3n) { --stagger: .18s; }
+.js .card.reveal.is-in:hover { transform: translateY(-3px); }
+
+/* Floor plan: walls at their real perimeter, then the room's contents. */
+.motion .plan-draw .pl-wall { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); fill-opacity: 0; }
+.motion .plan-draw.is-in .pl-wall { stroke-dashoffset: 0; fill-opacity: 1; transition: stroke-dashoffset 1.5s cubic-bezier(.5, 0, .3, 1), fill-opacity .6s ease 1.2s; }
+.motion .plan-draw:not(.is-in) .pl-item,
+.motion .plan-draw:not(.is-in) .pl-window,
+.motion .plan-draw:not(.is-in) .pl-dim,
+.motion .plan-draw:not(.is-in) .pl-lab { opacity: 0; }
+.motion .plan-draw.is-in .pl-item { animation: pl-in .5s ease backwards; animation-delay: calc(1.25s + var(--i, 0) * 90ms); }
+.motion .plan-draw.is-in .pl-window { animation: pl-glow 1.4s ease 1.1s backwards; }
+.motion .plan-draw.is-in .pl-dim,
+.motion .plan-draw.is-in .pl-lab:not(.pl-item) { animation: pl-in .6s ease 1.6s backwards; }
+@keyframes pl-in { from { opacity: 0; } }
+@keyframes pl-glow { from { opacity: 0; } 40% { opacity: 1; filter: drop-shadow(0 0 6px #F2C46B); } }
+
+/* The year: one night at a time, and a legend that filters it. */
+.motion .cal-wave .month:not(.is-in) .day { opacity: 0; }
+.motion .cal-wave .month.is-in .day { animation: day-in .42s ease backwards; animation-delay: calc(var(--i, 0) * 11ms); }
+@keyframes day-in { from { opacity: 0; transform: translateY(4px) scale(.9); } }
+.day { transition: opacity .25s ease, filter .25s ease; }
+.day.is-past { filter: saturate(.25); opacity: .45; }
+.day.is-past .pp { text-decoration: line-through; text-decoration-thickness: 1px; }
+.day.is-today { box-shadow: inset 0 0 0 2px var(--amber); }
+.cal-legend button {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 6px 12px 6px 8px;
+  font: inherit; font-size: 14.5px; color: var(--ink); background: transparent;
+  border: 1.5px solid transparent; border-radius: 100px; cursor: pointer;
+}
+.cal-legend button:hover { border-color: var(--line-2); }
+.cal-legend button[aria-pressed="true"] { border-color: var(--ink); background: var(--surface); }
+.cal-legend li:has(button) { margin: 0; }
+.cal-today { font-size: 14.5px; color: var(--ink-2); margin: -12px 0 20px; }
+[data-season] .day { opacity: .16; }
+[data-season="s-quiet"] .day.s-quiet, [data-season="s-spring"] .day.s-spring,
+[data-season="s-summer"] .day.s-summer, [data-season="s-autumn"] .day.s-autumn,
+[data-season="s-peak"] .day.s-peak { opacity: 1; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+
+/* Reservation: the stay as a strip of its nights, coloured by season. */
+.night-strip { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 2px; padding: 0; }
+.night-strip li {
+  margin: 0; min-width: 44px; padding: 4px 6px; border-radius: 3px; border: 1px solid var(--line-2);
+  display: flex; flex-direction: column; align-items: center; line-height: 1.15;
+  font-variant-numeric: tabular-nums; animation: day-in .35s ease backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+.night-strip b { font-size: 11px; font-weight: 400; color: var(--ink-3); }
+.night-strip span { font-size: 13px; font-weight: 600; }
+.night-strip:empty { display: none; }
+#t-sum.is-tick { animation: tick .5s ease; }
+@keyframes tick { 40% { color: var(--amber-ink); transform: translateY(-2px); } }
+#t-sum { display: inline-block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover, .js .card.reveal.is-in:hover { transform: none; }
+  .card:hover .card-art img { transform: none; }
+}

@@ -44,6 +44,111 @@
     }
   }
 
+  /* --- Light -------------------------------------------------------------- */
+  var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!calm) { document.documentElement.classList.add("motion"); }
+
+  function onView(els, fn, margin) {
+    if (!els.length) { return; }
+    if (calm || !("IntersectionObserver" in window)) { els.forEach(fn); return; }
+    var seen = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { fn(en.target); seen.unobserve(en.target); }
+      });
+    }, { rootMargin: margin || "0px 0px -10% 0px" });
+    els.forEach(function (el) { seen.observe(el); });
+  }
+
+  /* Glass brightens where the pointer is, as if the sun were there. */
+  if (!calm && window.matchMedia("(hover: hover)").matches) {
+    $$(".lit").forEach(function (el) {
+      el.addEventListener("pointermove", function (ev) {
+        var b = el.getBoundingClientRect();
+        el.style.setProperty("--lx", ((ev.clientX - b.left) / b.width * 100).toFixed(1) + "%");
+        el.style.setProperty("--ly", ((ev.clientY - b.top) / b.height * 100).toFixed(1) + "%");
+      });
+    });
+  }
+
+  /* The coloured light on the floor slants as the page scrolls past the window. */
+  var hero = $(".hero");
+  if (hero && !calm) {
+    var pending = false;
+    var sun = function () {
+      pending = false;
+      var b = hero.getBoundingClientRect();
+      if (b.bottom < 0) { return; }
+      hero.style.setProperty("--sun", Math.min(1, Math.max(0, -b.top / b.height)).toFixed(3));
+    };
+    window.addEventListener("scroll", function () {
+      if (!pending) { pending = true; window.requestAnimationFrame(sun); }
+    }, { passive: true });
+  }
+
+  /* Floor plans draw their walls, then what stands inside them. */
+  $$(".plan-fig svg").forEach(function (svg) {
+    svg.classList.add("plan-draw");
+    $$(".pl-item", svg).forEach(function (el, i) { el.style.setProperty("--i", i); });
+  });
+  onView($$(".plan-draw"), function (el) { el.classList.add("is-in"); });
+
+  /* The year opens a month at a time, one night after another. */
+  $$(".cal-grid").forEach(function (grid) { grid.classList.add("cal-wave"); });
+  $$(".cal-wave .month").forEach(function (month) {
+    $$(".day", month).forEach(function (day, i) { day.style.setProperty("--i", i); });
+  });
+  onView($$(".cal-wave .month"), function (el) { el.classList.add("is-in"); }, "0px 0px -5% 0px");
+
+  /* Nights already gone are shown as gone; tonight is marked. */
+  function iso(d) {
+    function pad(n) { return n < 10 ? "0" + n : String(n); }
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  var today = iso(new Date());
+  var days = $$(".day[data-d]");
+  if (days.length && today >= days[0].getAttribute("data-d") &&
+      today <= days[days.length - 1].getAttribute("data-d")) {
+    var marked = false;
+    days.forEach(function (day) {
+      var d = day.getAttribute("data-d");
+      if (d < today) { day.classList.add("is-past"); }
+      if (d === today) { day.classList.add("is-today"); day.title = "Bu gün"; marked = true; }
+    });
+    if (marked) {
+      $$(".cal-legend").forEach(function (legend) {
+        var note = document.createElement("p");
+        note.className = "cal-today";
+        note.textContent = "Bu gün " + today.split("-").reverse().join(".") +
+          " — sarı çərçivəli xanadır; keçmiş gecələr solğun göstərilir.";
+        legend.parentNode.insertBefore(note, legend.nextSibling);
+      });
+    }
+  }
+
+  /* The legend filters the year: press a season to see only its nights. */
+  $$(".cal-legend").forEach(function (legend) {
+    var scope = legend.parentNode;
+    var buttons = [];
+    $$("li", legend).forEach(function (li) {
+      var swatch = $(".swatch", li);
+      if (!swatch) { return; }
+      var tone = swatch.className.replace("swatch", "").trim();
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("aria-pressed", "false");
+      while (li.firstChild) { btn.appendChild(li.firstChild); }
+      li.appendChild(btn);
+      buttons.push(btn);
+      btn.addEventListener("click", function () {
+        var on = btn.getAttribute("aria-pressed") !== "true";
+        buttons.forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        if (on) { scope.setAttribute("data-season", tone); }
+        else { scope.removeAttribute("data-season"); }
+      });
+    });
+  });
+
   /* --- Reservation --------------------------------------------------------- */
   var form = $("#res-form");
   if (!form || typeof window.QP === "undefined") { return; }
@@ -96,6 +201,27 @@
     return out;
   }
 
+  /* Each night of the stay, in its season's colour, with its own price. */
+  var strip = $("#t-strip");
+  function drawStrip(slug, nights) {
+    if (!strip) { return; }
+    strip.textContent = "";
+    if (nights.length > 31) { return; }
+    nights.forEach(function (ms, i) {
+      var s = seasonAt(ms), p = nightPrice(slug, ms);
+      if (!s || p === null) { return; }
+      var li = document.createElement("li");
+      li.className = s.tone;
+      li.style.setProperty("--i", i);
+      var d = document.createElement("b");
+      d.textContent = fmtDate(ms).slice(0, 5);
+      var v = document.createElement("span");
+      v.textContent = p;
+      li.appendChild(d); li.appendChild(v);
+      strip.appendChild(li);
+    });
+  }
+
   function quote() {
     var nights = nightsBetween();
     var t = { nights: $("#t-nights"), room: $("#t-room"), season: $("#t-season"), sum: $("#t-sum") };
@@ -103,6 +229,7 @@
     t.room.textContent = room ? room.name + " — " + room.kind.toLowerCase() : "—";
     if (!nights || !room) {
       t.nights.textContent = "—"; t.season.textContent = "—"; t.sum.textContent = "—";
+      drawStrip(slug, []);
       return null;
     }
     var sum = 0, names = [], minNeeded = 1;
@@ -116,7 +243,13 @@
     }
     t.nights.textContent = nights.length + " gecə";
     t.season.textContent = names.join(", ");
-    t.sum.textContent = money(sum);
+    if (t.sum.textContent !== money(sum)) {
+      t.sum.textContent = money(sum);
+      t.sum.classList.remove("is-tick");
+      void t.sum.offsetWidth;
+      t.sum.classList.add("is-tick");
+    }
+    drawStrip(slug, nights);
     return { nights: nights, sum: sum, room: room, slug: slug, minNeeded: minNeeded };
   }
 
