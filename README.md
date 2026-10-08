@@ -76,6 +76,25 @@ the repository stays licence-clean.
 The colours are not decorative. A room's glass colour marks that room everywhere it
 appears — its card spine, its calendar, its floor plan, its row in every table.
 
+## Motion: what the window does to light
+
+A şəbəkə exists to colour the light that comes into a room, so that is the only thing
+the motion does. On the front page the window is inline SVG, tile by tile: the glass
+takes the morning sun pane by pane from the top-right corner, and the same glass
+group is cast onto the floor below it, slanting as the page scrolls. Under a pointer
+every lattice brightens where the "sun" is, and a room card throws its own glass
+colour as it lifts.
+
+The rest of the motion carries information. Each floor plan draws its walls at their
+real perimeter before the bed, bath and furniture appear. The calendar opens one
+night at a time, marks today, greys out nights that have already passed, and its
+legend becomes a filter: press a season to see only its nights. The reservation total
+shows the stay as a strip of nights, each in its season's colour with its own price.
+
+All of it is added by script under a `.motion` class that is only set when the visitor
+has not asked for reduced motion; with JavaScript off every pane, wall and price is
+already in its final state.
+
 ## What is in it
 
 - **8 rooms, each its own static URL** with `HotelRoom` structured data: occupancy,
